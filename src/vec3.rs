@@ -1,6 +1,7 @@
 use std::f32;
 use std::ops::Add;
 use std::ops::Mul;
+use std::ops::Sub;
 
 #[derive(Copy, Clone)]
 pub struct Vec3f {
@@ -28,8 +29,12 @@ impl Vec3f {
   }
 
   pub fn length(&self) -> f32 {
-    return (self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2]).sqrt();
+    dot(self, self).sqrt()
   }
+}
+
+pub fn dot(v1 : &Vec3f, v2: &Vec3f) -> f32 {
+  v1.x() * v2.x() + v1.y() * v2.y() + v1.z() * v2.z()
 }
 
 pub fn unit_vector(v: &Vec3f) -> Vec3f {
@@ -43,13 +48,7 @@ impl Add<Vec3f> for Vec3f {
   type Output = Vec3f;
 
   fn add(self, other: Vec3f) -> Vec3f {
-    Vec3f {
-      e: [
-        self.e[0] + other.e[0],
-        self.e[1] + other.e[1],
-        self.e[2] + other.e[2],
-      ],
-    }
+    &self + &other
   }
 }
 
@@ -59,10 +58,32 @@ impl<'a, 'b> Add<&'a Vec3f> for &'b Vec3f {
   fn add(self, other: &'a Vec3f) -> Vec3f {
     Vec3f {
       e: [
-        self.e[0] + other.e[0],
-        self.e[1] + other.e[1],
-        self.e[2] + other.e[2],
+        self.x() + other.x(),
+        self.y() + other.y(),
+        self.z() + other.z()
       ],
+    }
+  }
+}
+
+impl Sub<Vec3f> for Vec3f {
+  type Output = Vec3f;
+
+  fn sub(self, other: Vec3f) -> Vec3f {
+    &self - &other
+  }
+}
+
+impl<'a, 'b> Sub<&'a Vec3f> for &'b Vec3f {
+  type Output = Vec3f;
+
+  fn sub(self, other: &'a Vec3f) -> Vec3f {
+    Vec3f {
+      e: [
+        self.x() - other.x(),
+        self.y() - other.y(),
+        self.z() - other.z(),
+      ]
     }
   }
 }
@@ -72,21 +93,16 @@ impl Mul<f32> for Vec3f {
 
   fn mul(self, other: f32) -> Vec3f {
     Vec3f {
-      e: [self.e[0] * other, self.e[1] * other, self.e[2] * other],
+      e: [self.x() * other, self.y() * other, self.z() * other],
     }
   }
 }
 
-trait MulVec3f {
-  fn mul(self, lhs: &Vec3f) -> Vec3f;
-}
+impl Mul<Vec3f> for f32 {
+  type Output = Vec3f;
 
-impl MulVec3f for f32 {
-
-  fn mul(self, other: &Vec3f) -> Vec3f {
-    Vec3f {
-      e: [self * other.e[0], self * other.e[1], self * other.e[2]]
-    }
+  fn mul(self, other: Vec3f) -> Vec3f {
+    other * self
   }
 }
 
