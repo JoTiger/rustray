@@ -2,6 +2,7 @@ use std::f32;
 use std::ops::Add;
 use std::ops::Mul;
 use std::ops::Sub;
+use std::ops::Div;
 
 #[derive(Copy, Clone)]
 pub struct Vec3f {
@@ -103,6 +104,15 @@ impl Mul<Vec3f> for f32 {
 
   fn mul(self, other: Vec3f) -> Vec3f {
     other * self
+  }
+}
+
+impl Div<f32> for Vec3f {
+  type Output = Vec3f;
+
+  fn div(self, other: f32) -> Vec3f {
+    let rcp = 1.0 / other;
+    self * rcp
   }
 }
 

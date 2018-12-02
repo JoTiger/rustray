@@ -6,38 +6,34 @@ use vec3::Vec3f;
 pub mod ray;
 use ray::Ray;
 
-fn hit_sphere(center: &Vec3f, radius: f32, ray: &Ray) -> f32 {
-    let oc: Vec3f = ray.origin() - center;
-    let a = dot(ray.direction(), ray.direction());
-    let b = 2.0 * dot(&oc, ray.direction());
-    let c = dot(&oc, &oc) - radius * radius;
-    let discriminant = b * b - 4.0 * a * c;
-    if discriminant < 0.0 {
-        -1.0
-    }
-    else
-    {
-        (-b - discriminant.sqrt()) / (2.0 * a)
-    }
-}
+pub mod hit;
+pub mod sphere;
+use hit::HitRecord;
+use hit::Hitable;
+use hit::HitableList;
+use sphere::Sphere;
 
-fn color(ray: &Ray) -> Vec3f {
-    let sphereCenter = Vec3f {
-        e: [0.0, 0.0, -1.0]
+use std::f32;
+
+fn color(ray: &Ray, world: &HitableList) -> Vec3f {
+    let mut rec = HitRecord {
+      t: 0.0,
+      p: Vec3f { e: [0.0, 0.0, 0.0] },
+      normal: Vec3f { e: [0.0, 0.0, 0.0] },
     };
-    let t = hit_sphere(&sphereCenter, 0.5, ray);
-    if t > 0.0 {
-        let dN = ray.point_at_parameter(t) - sphereCenter;
-        let N = unit_vector(&dN);
-        return 0.5 * Vec3f { e : [
-            N.x() + 1.0, N.y() + 1.0, N.z() + 1.0]
-        }
+    if world.hit(ray, 0.0, f32::MAX, &mut rec) {
+        return 0.5 * Vec3f {
+            e: [
+                rec.normal.x() + 1.0,
+                rec.normal.y() + 1.0,
+                rec.normal.z() + 1.0,
+            ],
+        };
+    } else {
+        let unit_direction = unit_vector(ray.direction());
+        let t = 0.5 * (unit_direction.y() + 1.0);
+        return (1.0 - t) * Vec3f { e: [1.0, 1.0, 1.0] } + t * Vec3f { e: [0.5, 0.7, 1.0] };
     }
-
-    let unit_direction = unit_vector(ray.direction());
-    let t = 0.5 * (unit_direction.y() + 1.0);
-    let result = Vec3f { e: [1.0, 1.0, 1.0] } * (1.0 - t) + Vec3f { e: [0.5, 0.7, 1.0] } * t;
-    result
 }
 
 fn main() {
@@ -50,6 +46,23 @@ fn main() {
     let horiztonal = Vec3f { e: [4.0, 0.0, 0.0] };
     let vertical = Vec3f { e: [0.0, 2.0, 0.0] };
     let origin = Vec3f { e: [0.0, 0.0, 0.0] };
+
+    let mut world = HitableList { list: Vec::new() };
+
+    world.list.push(Box::new(Sphere {
+        center: Vec3f {
+            e: [0.0, 0.0, -1.0],
+        },
+        radius: 0.5,
+    }));
+
+    world.list.push(Box::new(Sphere {
+        center: Vec3f {
+            e: [0.0, -100.5, -1.0],
+        },
+        radius: 100.0,
+    }));
+
     for j in (0..ny).rev() {
         for i in (0..nx) {
             let u = i as f32 / nx as f32;
@@ -58,7 +71,7 @@ fn main() {
                 a: origin,
                 b: lower_left_corner + u * horiztonal + v * vertical,
             };
-            let col = color(&r);
+            let col = color(&r, &world);
             let ir: i32 = (255.99 * col.r()) as i32;
             let ig: i32 = (255.99 * col.g()) as i32;
             let ib: i32 = (255.99 * col.b()) as i32;
