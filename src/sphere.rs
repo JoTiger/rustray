@@ -4,9 +4,28 @@ use ray::Ray;
 use vec3::dot;
 use vec3::Vec3f;
 
+#[derive(Default)]
 pub struct Sphere {
   pub center: Vec3f,
   pub radius: f32,
+}
+
+impl Sphere {
+  pub fn new(c : &Vec3f, r : f32) -> Sphere {
+    Sphere{
+      center : *c,
+      radius : r
+    }
+  }
+}
+
+impl From<(f32, f32, f32, f32)> for Sphere {
+  fn from((x, y, z, r) : (f32, f32, f32, f32)) -> Sphere {
+    Sphere {
+      center : Vec3f::new(x, y, z),
+      radius : r
+    }
+  }
 }
 
 impl Hitable for Sphere {

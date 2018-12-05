@@ -4,7 +4,7 @@ use std::ops::Mul;
 use std::ops::Sub;
 use std::ops::Div;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 pub struct Vec3f {
   pub e: [f32; 3],
 }
@@ -31,6 +31,12 @@ impl Vec3f {
 
   pub fn length(&self) -> f32 {
     dot(self, self).sqrt()
+  }
+
+  pub fn new(x : f32, y : f32, z : f32) -> Vec3f {
+    Vec3f {
+      e: [x, y, z]
+    }
   }
 }
 
