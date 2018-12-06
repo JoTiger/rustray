@@ -20,6 +20,13 @@ impl Ray {
   pub fn point_at_parameter<'a>(&'a self, t : f32) -> Vec3f {
     self.a + t * self.b
   }
+
+  pub fn new(va : &Vec3f, vb : &Vec3f) -> Ray {
+    Ray {
+      a : *va,
+      b : *vb
+    }
+  }
 }
 
 #[test]
