@@ -24,13 +24,16 @@ use std::f32;
 pub mod sample;
 use sample::random_in_unit_sphere;
 
+pub mod material;
+
 fn color(ray: &Ray, world: &HitableList) -> Vec3f {
     let mut rec = HitRecord {
         t: 0.0,
         p: Default::default(),
         normal: Default::default(),
+        material : None
     };
-    if world.hit(ray, 0.0, f32::MAX, &mut rec) {
+    if world.hit(ray, 0.001, f32::MAX, &mut rec) {
         let target = rec.p + rec.normal + random_in_unit_sphere();
         return 0.5 * color(
             &Ray {
@@ -78,6 +81,7 @@ fn main() {
                 col = col + color(&r, &world);
             }
             col = col / (ns as f32);
+            col = Vec3f::new(col.x().sqrt(), col.y().sqrt(), col.z().sqrt());
             let ir: i32 = (255.99 * col.r()) as i32;
             let ig: i32 = (255.99 * col.g()) as i32;
             let ib: i32 = (255.99 * col.b()) as i32;
