@@ -3,32 +3,36 @@ use hit::Hitable;
 use ray::Ray;
 use vec3::dot;
 use vec3::Vec3f;
+use material::Material;
 
 #[derive(Default)]
-pub struct Sphere {
+pub struct Sphere<'a> {
   pub center: Vec3f,
   pub radius: f32,
+  pub mat : Option<&'a Material>
 }
 
-impl Sphere {
-  pub fn new(c : &Vec3f, r : f32) -> Sphere {
+impl<'a> Sphere<'a> {
+  pub fn new(c : &Vec3f, r : f32) -> Sphere<'a> {
     Sphere{
       center : *c,
-      radius : r
+      radius : r,
+      mat : None
     }
   }
 }
 
-impl From<(f32, f32, f32, f32)> for Sphere {
-  fn from((x, y, z, r) : (f32, f32, f32, f32)) -> Sphere {
+impl<'a> From<(f32, f32, f32, f32)> for Sphere<'a> {
+  fn from((x, y, z, r) : (f32, f32, f32, f32)) -> Sphere<'a> {
     Sphere {
       center : Vec3f::new(x, y, z),
-      radius : r
+      radius : r,
+      mat : None
     }
   }
 }
 
-impl Hitable for Sphere {
+impl<'a> Hitable for Sphere<'a> {
   fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, rec: &mut HitRecord) -> bool {
     let oc = ray.origin() - &self.center;
     let a = dot(ray.direction(), ray.direction());
