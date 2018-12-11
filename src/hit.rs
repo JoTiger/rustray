@@ -6,7 +6,7 @@ pub struct HitRecord<'a> {
   pub t: f32,
   pub p: Vec3f,
   pub normal: Vec3f,
-  pub material: Option<&'a Material>
+  pub mat: Option<&'a Material>
 }
 
 impl<'a> Clone for HitRecord<'a> {
@@ -15,13 +15,14 @@ impl<'a> Clone for HitRecord<'a> {
           t : self.t,
           p : self.p,
           normal : self.normal,
-          material : self.material
+          mat : self.mat
         }
     }
 }
 
 pub trait Hitable {
   fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, rec: &mut HitRecord) -> bool;
+  fn material(&self) -> Option<&Material>;
 }
 
 pub struct HitableList {
@@ -40,7 +41,7 @@ impl Hitable for HitableList {
       t: 0.0,
       p: Vec3f { e: [0.0, 0.0, 0.0] },
       normal: Vec3f { e: [0.0, 0.0, 0.0] },
-      material : None
+      mat : None
     };
     let mut hit_anything = false;
     let mut closest_so_far = t_max;
@@ -49,8 +50,13 @@ impl Hitable for HitableList {
          hit_anything = true;
         closest_so_far = temp_rec.t;
         *rec = temp_rec.clone();
+        // rec.mat = self.material();
       }
     }
     return hit_anything;
+  }
+
+  fn material(&self) -> Option<&Material> {
+    None
   }
 }

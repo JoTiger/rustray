@@ -57,4 +57,8 @@ impl<'a> Hitable for Sphere<'a> {
     }
     false
   }
+
+  fn material(&self) -> Option<&Material> {
+    return self.mat
+  }
 }

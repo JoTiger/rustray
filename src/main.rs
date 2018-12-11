@@ -31,7 +31,7 @@ fn color(ray: &Ray, world: &HitableList) -> Vec3f {
         t: 0.0,
         p: Default::default(),
         normal: Default::default(),
-        material : None
+        mat : None
     };
     if world.hit(ray, 0.001, f32::MAX, &mut rec) {
         let target = rec.p + rec.normal + random_in_unit_sphere();
