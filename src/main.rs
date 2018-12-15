@@ -26,8 +26,9 @@ use sample::random_in_unit_sphere;
 
 pub mod material;
 use material::Lambert;
+use material::Metal;
 
-fn color(ray: &Ray, world: &HitableList, depth : i32) -> Vec3f {
+fn color(ray: &Ray, world: &HitableList, depth: i32) -> Vec3f {
     let mut rec = HitRecord {
         t: 0.0,
         p: Default::default(),
@@ -36,15 +37,18 @@ fn color(ray: &Ray, world: &HitableList, depth : i32) -> Vec3f {
     };
     if world.hit(ray, 0.001, f32::MAX, &mut rec) {
         let mut scattered = Ray {
-            a : Vec3f::default(),
-            b : Vec3f::default()
+            a: Vec3f::default(),
+            b: Vec3f::default(),
         };
         let mut attenuation = Vec3f::default();
-        if (depth < 50) && rec.mat.unwrap().scatter(ray, &rec, &mut attenuation, &mut scattered) {
-            return attenuation * color(&scattered, world, depth + 1);
-        }
-        else
+        if (depth < 50)
+            && rec
+                .mat
+                .unwrap()
+                .scatter(ray, &rec, &mut attenuation, &mut scattered)
         {
+            return attenuation * color(&scattered, world, depth + 1);
+        } else {
             Vec3f::default()
         }
     } else {
@@ -61,21 +65,43 @@ fn main() {
     print!("P3\n{} {}\n255\n", nx, ny);
 
     let lambert1 = Lambert {
-        albedo : Vec3f::new(0.8, 0.3, 0.3)
+        albedo: Vec3f::new(0.8, 0.3, 0.3),
     };
 
     let lambert2 = Lambert {
-        albedo : Vec3f::new(0.8, 0.8, 0.0)
+        albedo: Vec3f::new(0.8, 0.8, 0.0),
     };
 
+    let metal1 = Metal {
+        albedo : Vec3f::new(0.8, 0.6, 0.2),
+    };
+
+    let metal2 = Metal {
+        albedo : Vec3f::new(0.8, 0.8, 0.8),
+    };
     let mut world = HitableList { list: Vec::new() };
 
-    world
-        .list
-        .push(Box::new(Sphere::new(&Vec3f::new(0.0, 0.0, -1.0), 0.5, Some(&lambert1))));
-    world
-        .list
-        .push(Box::new(Sphere::new(&Vec3f::new(0.0, -100.5, -1.0), 100.0, Some(&lambert2))));
+    world.list.push(Box::new(Sphere::new(
+        &Vec3f::new(0.0, 0.0, -1.0),
+        0.5,
+        Some(&lambert1),
+    )));
+    world.list.push(Box::new(Sphere::new(
+        &Vec3f::new(0.0, -100.5, -1.0),
+        100.0,
+        Some(&lambert2),
+    )));
+    world.list.push(Box::new(Sphere::new(
+        &Vec3f::new(1.0, 0.0, -1.0),
+        0.5,
+        Some(&metal1),
+    )));
+    world.list.push(Box::new(Sphere::new(
+        &Vec3f::new(-1.0, 0.0, -1.0),
+        0.5,
+        Some(&metal2),
+    )));
+
 
     let cam: Camera = Default::default();
 

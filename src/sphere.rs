@@ -13,7 +13,7 @@ pub struct Sphere<'a> {
 }
 
 impl<'a> Sphere<'a> {
-    pub fn new(c: &Vec3f, r: f32, m : Option<&'a Material>) -> Sphere<'a> {
+    pub fn new(c: &Vec3f, r: f32, m: Option<&'a Material>) -> Sphere<'a> {
         Sphere {
             center: *c,
             radius: r,

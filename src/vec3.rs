@@ -49,6 +49,10 @@ pub fn unit_vector(v: &Vec3f) -> Vec3f {
     }
 }
 
+pub fn reflect(v: &Vec3f, n : &Vec3f) -> Vec3f {
+    v - 2.0 * dot(v, n) * n
+}
+
 impl Add<Vec3f> for Vec3f {
     type Output = Vec3f;
 
@@ -79,6 +83,14 @@ impl Sub<Vec3f> for Vec3f {
     }
 }
 
+impl Sub<Vec3f> for &Vec3f {
+    type Output = Vec3f;
+
+    fn sub(self, other: Vec3f) -> Vec3f {
+        *self - other
+    }
+}
+
 impl<'a, 'b> Sub<&'a Vec3f> for &'b Vec3f {
     type Output = Vec3f;
 
@@ -103,6 +115,16 @@ impl Mul<f32> for Vec3f {
     }
 }
 
+impl Mul<&Vec3f> for f32 {
+    type Output = Vec3f;
+
+    fn mul(self, other : &Vec3f) -> Vec3f {
+        Vec3f {
+            e: [self * other.x(), self * other.y(), self * other.z()],
+        }
+    }
+}
+
 impl Mul<Vec3f> for f32 {
     type Output = Vec3f;
 
@@ -114,9 +136,13 @@ impl Mul<Vec3f> for f32 {
 impl Mul<Vec3f> for Vec3f {
     type Output = Vec3f;
 
-    fn mul(self, other : Vec3f) -> Vec3f {
+    fn mul(self, other: Vec3f) -> Vec3f {
         Vec3f {
-            e : [self.x() * other.x(), self.y() * other.y(), self.z() * other.z()]
+            e: [
+                self.x() * other.x(),
+                self.y() * other.y(),
+                self.z() * other.z(),
+            ],
         }
     }
 }
