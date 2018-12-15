@@ -25,6 +25,7 @@ pub mod sample;
 use sample::random_in_unit_sphere;
 
 pub mod material;
+use material::Dielectric;
 use material::Lambert;
 use material::Metal;
 
@@ -65,7 +66,7 @@ fn main() {
     print!("P3\n{} {}\n255\n", nx, ny);
 
     let lambert1 = Lambert {
-        albedo: Vec3f::new(0.8, 0.3, 0.3),
+        albedo: Vec3f::new(0.1, 0.2, 0.5),
     };
 
     let lambert2 = Lambert {
@@ -73,12 +74,16 @@ fn main() {
     };
 
     let metal1 = Metal {
-        albedo : Vec3f::new(0.8, 0.6, 0.2),
+        albedo: Vec3f::new(0.8, 0.6, 0.2),
+        fuzz: 0.0,
     };
 
     let metal2 = Metal {
-        albedo : Vec3f::new(0.8, 0.8, 0.8),
+        albedo: Vec3f::new(0.8, 0.8, 0.8),
+        fuzz: 0.3,
     };
+
+    let dielectric = Dielectric { ref_idx: 1.5 };
     let mut world = HitableList { list: Vec::new() };
 
     world.list.push(Box::new(Sphere::new(
@@ -99,9 +104,8 @@ fn main() {
     world.list.push(Box::new(Sphere::new(
         &Vec3f::new(-1.0, 0.0, -1.0),
         0.5,
-        Some(&metal2),
+        Some(&dielectric),
     )));
-
 
     let cam: Camera = Default::default();
 

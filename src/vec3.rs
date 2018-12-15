@@ -2,6 +2,7 @@ use std::f32;
 use std::ops::Add;
 use std::ops::Div;
 use std::ops::Mul;
+use std::ops::Neg;
 use std::ops::Sub;
 
 #[derive(Copy, Clone, Default)]
@@ -49,7 +50,19 @@ pub fn unit_vector(v: &Vec3f) -> Vec3f {
     }
 }
 
-pub fn reflect(v: &Vec3f, n : &Vec3f) -> Vec3f {
+pub fn refract(v: &Vec3f, n: &Vec3f, ni_over_nt: f32, refracted: &mut Vec3f) -> bool {
+    let uv = unit_vector(v);
+    let dt = dot(&uv, n);
+    let discriminant = 1.0 - ni_over_nt * ni_over_nt * (1.0 - dt * dt);
+    if discriminant > 0.0 {
+        *refracted = ni_over_nt * (uv - dt * n) - discriminant.sqrt() * n;
+        true
+    } else {
+        false
+    }
+}
+
+pub fn reflect(v: &Vec3f, n: &Vec3f) -> Vec3f {
     v - 2.0 * dot(v, n) * n
 }
 
@@ -118,7 +131,7 @@ impl Mul<f32> for Vec3f {
 impl Mul<&Vec3f> for f32 {
     type Output = Vec3f;
 
-    fn mul(self, other : &Vec3f) -> Vec3f {
+    fn mul(self, other: &Vec3f) -> Vec3f {
         Vec3f {
             e: [self * other.x(), self * other.y(), self * other.z()],
         }
@@ -130,6 +143,14 @@ impl Mul<Vec3f> for f32 {
 
     fn mul(self, other: Vec3f) -> Vec3f {
         other * self
+    }
+}
+
+impl Mul<Vec3f> for &Vec3f {
+    type Output = Vec3f;
+
+    fn mul(self, other: Vec3f) -> Vec3f {
+        *self * other
     }
 }
 
@@ -153,6 +174,16 @@ impl Div<f32> for Vec3f {
     fn div(self, other: f32) -> Vec3f {
         let rcp = 1.0 / other;
         self * rcp
+    }
+}
+
+impl Neg for Vec3f {
+    type Output = Vec3f;
+
+    fn neg(self) -> Vec3f {
+        Vec3f {
+            e: [-self.x(), -self.y(), -self.z()],
+        }
     }
 }
 
