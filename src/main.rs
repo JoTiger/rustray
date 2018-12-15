@@ -25,23 +25,28 @@ pub mod sample;
 use sample::random_in_unit_sphere;
 
 pub mod material;
+use material::Lambert;
 
-fn color(ray: &Ray, world: &HitableList) -> Vec3f {
+fn color(ray: &Ray, world: &HitableList, depth : i32) -> Vec3f {
     let mut rec = HitRecord {
         t: 0.0,
         p: Default::default(),
         normal: Default::default(),
-        mat : None
+        mat: None,
     };
     if world.hit(ray, 0.001, f32::MAX, &mut rec) {
-        let target = rec.p + rec.normal + random_in_unit_sphere();
-        return 0.5 * color(
-            &Ray {
-                a: rec.p,
-                b: target - rec.p,
-            },
-            world,
-        );
+        let mut scattered = Ray {
+            a : Vec3f::default(),
+            b : Vec3f::default()
+        };
+        let mut attenuation = Vec3f::default();
+        if (depth < 50) && rec.mat.unwrap().scatter(ray, &rec, &mut attenuation, &mut scattered) {
+            return attenuation * color(&scattered, world, depth + 1);
+        }
+        else
+        {
+            Vec3f::default()
+        }
     } else {
         let unit_direction = unit_vector(ray.direction());
         let t = 0.5 * (unit_direction.y() + 1.0);
@@ -55,14 +60,22 @@ fn main() {
     let ns: i32 = 100;
     print!("P3\n{} {}\n255\n", nx, ny);
 
+    let lambert1 = Lambert {
+        albedo : Vec3f::new(0.8, 0.3, 0.3)
+    };
+
+    let lambert2 = Lambert {
+        albedo : Vec3f::new(0.8, 0.8, 0.0)
+    };
+
     let mut world = HitableList { list: Vec::new() };
 
     world
         .list
-        .push(Box::new(Sphere::new(&Vec3f::new(0.0, 0.0, -1.0), 0.5)));
+        .push(Box::new(Sphere::new(&Vec3f::new(0.0, 0.0, -1.0), 0.5, Some(&lambert1))));
     world
         .list
-        .push(Box::new(Sphere::from((0.0, -100.5, -1.0, 100.0))));
+        .push(Box::new(Sphere::new(&Vec3f::new(0.0, -100.5, -1.0), 100.0, Some(&lambert2))));
 
     let cam: Camera = Default::default();
 
@@ -78,7 +91,7 @@ fn main() {
                 let v = (j as f32 + randv) / ny as f32;
                 let r = cam.get_ray(u, v);
                 let p = r.point_at_parameter(2.0);
-                col = col + color(&r, &world);
+                col = col + color(&r, &world, 0);
             }
             col = col / (ns as f32);
             col = Vec3f::new(col.x().sqrt(), col.y().sqrt(), col.z().sqrt());
