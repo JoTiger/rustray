@@ -123,13 +123,17 @@ fn main() {
     )));
 
     // let cam: Camera = Default::default();
-
+    let lookfrom = Vec3f::new(3.0, 3.0, 2.0);
+    let lookat = Vec3f::new(0.0, 0.0, -1.0);
+    let dist_to_focus = (lookfrom - lookat).length();
     let cam = Camera::new(
-        Vec3f::new(-2.0, 2.0, 1.0),
-        Vec3f::new(0.0, 0.0, -1.0),
+        lookfrom,
+        lookat,
         Vec3f::new(0.0, 1.0, 0.0),
-        90.0,
+        20.0,
         nx as f32 / ny as f32,
+        2.0,
+        dist_to_focus
     );
     let R = (std::f32::consts::PI / 4.0).cos();
 
