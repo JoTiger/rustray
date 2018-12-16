@@ -29,6 +29,8 @@ use material::Dielectric;
 use material::Lambert;
 use material::Metal;
 
+pub mod math;
+
 fn color(ray: &Ray, world: &HitableList, depth: i32) -> Vec3f {
     let mut rec = HitRecord {
         t: 0.0,
@@ -104,6 +106,11 @@ fn main() {
     world.list.push(Box::new(Sphere::new(
         &Vec3f::new(-1.0, 0.0, -1.0),
         0.5,
+        Some(&dielectric),
+    )));
+    world.list.push(Box::new(Sphere::new(
+        &Vec3f::new(-1.0, 0.0, -1.0),
+        -0.45,
         Some(&dielectric),
     )));
 
