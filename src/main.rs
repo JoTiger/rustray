@@ -45,6 +45,7 @@ fn color(ray: &Ray, world: &HitableList, depth: i32) -> Vec3f {
         };
         let mut attenuation = Vec3f::default();
         if (depth < 50)
+            && rec.mat.is_some()
             && rec
                 .mat
                 .unwrap()
@@ -85,6 +86,13 @@ fn main() {
         fuzz: 0.3,
     };
 
+    // let lambert1 = Lambert {
+    //     albedo: Vec3f::new(0.0, 0.0, 1.0),
+    // };
+    // let lambert2 = Lambert {
+    //     albedo : Vec3f::new(1.0, 0.0, 0.0),
+    // };
+
     let dielectric = Dielectric { ref_idx: 1.5 };
     let mut world = HitableList { list: Vec::new() };
 
@@ -114,7 +122,16 @@ fn main() {
         Some(&dielectric),
     )));
 
-    let cam: Camera = Default::default();
+    // let cam: Camera = Default::default();
+
+    let cam = Camera::new(
+        Vec3f::new(-2.0, 2.0, 1.0),
+        Vec3f::new(0.0, 0.0, -1.0),
+        Vec3f::new(0.0, 1.0, 0.0),
+        90.0,
+        nx as f32 / ny as f32,
+    );
+    let R = (std::f32::consts::PI / 4.0).cos();
 
     let mut rng = thread_rng();
 
