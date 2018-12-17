@@ -68,7 +68,7 @@ fn main() {
 
     let nx: i32 = 1200;
     let ny: i32 = 800;
-    let ns: i32 = 10;
+    let ns: i32 = 100;
     print!("P3\n{} {}\n255\n", nx, ny);
     let mut materials: Vec<Box<Material>> = Vec::new();
 
@@ -93,7 +93,7 @@ fn main() {
     
     for m in (0..500) {
         let choose_mat = rng.gen_range(0.0, 1.0);
-        if choose_mat > 0.8 {
+        if choose_mat < 0.8 {
             materials.push(Box::new(Lambert {
                 albedo: Vec3f::new(
                     rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0),
