@@ -27,6 +27,7 @@ use sample::random_in_unit_sphere;
 pub mod material;
 use material::Dielectric;
 use material::Lambert;
+use material::Material;
 use material::Metal;
 
 pub mod math;
@@ -63,81 +64,112 @@ fn color(ray: &Ray, world: &HitableList, depth: i32) -> Vec3f {
 }
 
 fn main() {
-    let nx: i32 = 400;
-    let ny: i32 = 300;
-    let ns: i32 = 100;
+    let mut rng = thread_rng();
+
+    let nx: i32 = 1200;
+    let ny: i32 = 800;
+    let ns: i32 = 10;
     print!("P3\n{} {}\n255\n", nx, ny);
+    let mut materials: Vec<Box<Material>> = Vec::new();
 
-    let lambert1 = Lambert {
-        albedo: Vec3f::new(0.1, 0.2, 0.5),
+    let mat1 = Lambert {
+        albedo: Vec3f::new(0.5, 0.5, 0.5),
     };
 
-    let lambert2 = Lambert {
-        albedo: Vec3f::new(0.8, 0.8, 0.0),
+    let mat2 = Dielectric {
+        ref_idx : 1.5
     };
 
-    let metal1 = Metal {
-        albedo: Vec3f::new(0.8, 0.6, 0.2),
-        fuzz: 0.0,
+    let mat3 = Lambert {
+        albedo : Vec3f::new(0.4, 0.2, 0.1),
     };
 
-    let metal2 = Metal {
-        albedo: Vec3f::new(0.8, 0.8, 0.8),
-        fuzz: 0.3,
+    let mat4 = Metal {
+        albedo : Vec3f::new(0.7, 0.6, 0.5),
+        fuzz : 0.0
     };
 
-    // let lambert1 = Lambert {
-    //     albedo: Vec3f::new(0.0, 0.0, 1.0),
-    // };
-    // let lambert2 = Lambert {
-    //     albedo : Vec3f::new(1.0, 0.0, 0.0),
-    // };
-
-    let dielectric = Dielectric { ref_idx: 1.5 };
     let mut world = HitableList { list: Vec::new() };
+    
+    for m in (0..500) {
+        let choose_mat = rng.gen_range(0.0, 1.0);
+        if choose_mat > 0.8 {
+            materials.push(Box::new(Lambert {
+                albedo: Vec3f::new(
+                    rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0),
+                    rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0),
+                    rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0),
+                ),
+            }));
+        } else if choose_mat < 0.95 {
+            materials.push(Box::new(Metal {
+                albedo: Vec3f::new(
+                    0.5 + 0.5 * rng.gen_range(0.0, 1.0),
+                    0.5 + 0.5 * rng.gen_range(0.0, 1.0),
+                    0.5 + 0.5 * rng.gen_range(0.0, 1.0)
+                ),
+                fuzz : 0.5 * rng.gen_range(0.0, 1.0)
+            }));
+        } else {
+            materials.push(Box::new(Dielectric {
+                ref_idx : 1.5
+            }))
+        }
+    }
+
+    let mut sidx = 0;
+    for a in (-11..11) {
+        for b in (-11..11) {
+            let center = Vec3f {
+                e: [
+                    a as f32 + 0.9 * rng.gen_range(0.0, 1.0),
+                    0.2,
+                    b as f32 + 0.9 * rng.gen_range(0.0, 1.0),
+                ],
+            };
+            if (center - Vec3f { e: [4.0, 0.2, 0.0] }).length() > 0.9 {
+                let mat = Some(&*materials[sidx]);
+                sidx += 1;
+                world.list.push(Box::new(Sphere::new(&center, 0.2, mat)));
+            }
+        }
+    }
+
+    
+    world.list.push(Box::new(Sphere::new(
+        &Vec3f::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Some(&mat1))));
 
     world.list.push(Box::new(Sphere::new(
-        &Vec3f::new(0.0, 0.0, -1.0),
-        0.5,
-        Some(&lambert1),
-    )));
-    world.list.push(Box::new(Sphere::new(
-        &Vec3f::new(0.0, -100.5, -1.0),
-        100.0,
-        Some(&lambert2),
-    )));
-    world.list.push(Box::new(Sphere::new(
-        &Vec3f::new(1.0, 0.0, -1.0),
-        0.5,
-        Some(&metal1),
-    )));
-    world.list.push(Box::new(Sphere::new(
-        &Vec3f::new(-1.0, 0.0, -1.0),
-        0.5,
-        Some(&dielectric),
-    )));
-    world.list.push(Box::new(Sphere::new(
-        &Vec3f::new(-1.0, 0.0, -1.0),
-        -0.45,
-        Some(&dielectric),
-    )));
+        &Vec3f::new(0.0, 1.0, 0.0),
+        1.0,
+        Some(&mat2))));
 
-    // let cam: Camera = Default::default();
-    let lookfrom = Vec3f::new(3.0, 3.0, 2.0);
-    let lookat = Vec3f::new(0.0, 0.0, -1.0);
-    let dist_to_focus = (lookfrom - lookat).length();
+    world.list.push(Box::new(Sphere::new(
+        &Vec3f::new(-4.0, 1.0, 0.0),
+        1.0,
+        Some(&mat3))));
+
+    world.list.push(Box::new(Sphere::new(
+        &Vec3f::new(4.0, 1.0, 0.0),
+        1.0,
+        Some(&mat4))));
+
+    let lookfrom = Vec3f::new(13.0, 2.0, 3.0);
+    let lookat = Vec3f::new(0.0, 0.0, 0.0);
+    let dist_to_focus = 10.0;
+    let aperture = 0.1;
     let cam = Camera::new(
         lookfrom,
         lookat,
         Vec3f::new(0.0, 1.0, 0.0),
         20.0,
         nx as f32 / ny as f32,
-        2.0,
-        dist_to_focus
+        aperture,
+        dist_to_focus,
     );
     let R = (std::f32::consts::PI / 4.0).cos();
-
-    let mut rng = thread_rng();
 
     for j in (0..ny).rev() {
         for i in (0..nx) {
